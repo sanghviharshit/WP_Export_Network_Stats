@@ -138,6 +138,7 @@ if(!class_exists('Export_Network_Stats')) {
 			    AND archived = '0'
 			"));
 
+			/*
 			echo $wpdb->prepare("
 			    SELECT blog_id
 			    FROM {$wpdb->blogs}
@@ -148,9 +149,14 @@ if(!class_exists('Export_Network_Stats')) {
 			    AND mature = '0' 
 			    AND public = '1'
 			");
+			*/
 
 			echo '<br /><br />';
 			//$site_admins = '';
+
+			
+			echo '<b>Blog ID,Blog Name, Blog URL, Privacy, Current Theme, Admin Email</b><br/>';
+
 			$site_admins_list = '';
 			foreach ($blogs as $blog) 
 			{
@@ -159,30 +165,47 @@ if(!class_exists('Export_Network_Stats')) {
 			                'role' => 'administrator', 
 			                'orderby' => 'display_name'
 			                ) );
-			   $results = $users_query->get_results();
+				$results = $users_query->get_results();
 
 			//http://codex.wordpress.org/Function_Reference/get_blog_details
 			    $blog_details = get_blog_details($blog->blog_id);
 			    //echo 'Blog '.$blog_details->blog_id.' is called '.$blog_details->blogname.'.';
 
-			    $site_admins_list .= '<b>Blog ID: ' . $blog->blog_id . '</b><br />';
-			    $site_admins_list .= 'Blog Name: ' . $blog_details->blogname . '<br />';
-			    $site_admins_list .= 'Blog URL: ' . $blog_details->path . '<br />';
-			        
+			    $option_privacy = get_option( 'blog_public', '');
+			    $option_theme = get_option( 'template', '');
+			    $option_admin_email = get_option( 'admin_email', '');
 
+
+
+		    	$site_admins_list .= $blog->blog_id . ',';
+		    	$site_admins_list .= $blog_details->blogname . ',';
+		    	$site_admins_list .= $blog_details->path . ',';
+				$site_admins_list .= $option_privacy . ',';
+				$site_admins_list .= $option_theme . ',';				
+		        $site_admins_list .= $option_admin_email . '<br />';
+
+			    /*
 			    foreach($results as $user)
 			    {
-			        $site_admins_list .= 'user_email: ' . $user->user_email . '<br />';
+			    	$site_admins_list .= $blog->blog_id . ',';
+			    	$site_admins_list .= $blog_details->blogname . ',';
+			    	$site_admins_list .= $blog_details->path . ',';
+					$site_admins_list .= $option_privacy . ',';
+					$site_admins_list .= $option_theme . ',';
+
+					
+			        $site_admins_list .= $user->user_email . '<br />';
+
 			        //$site_admins_list .= 'user_id: ' . $user->ID . '<br />';
 			    }
-			        $site_admins_list .= '<br />';
-
+				*/
 			    //$site_admins .= 'Blog ID: ' . $blog->blog_id . '<pre>' . print_r($results,true) . '</pre>';
 			}
 			restore_current_blog();
 
 			echo $site_admins_list;
 
+			/* Repeat in table */
 		}
 	}
 }

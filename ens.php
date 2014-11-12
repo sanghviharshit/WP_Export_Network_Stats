@@ -3,7 +3,7 @@
  * Plugin Name: Export Network Stats
  * Plugin URI: http://github.io/sanghviharshit
  * Description: Exports various site stats such as admins of each sites in multisite network
- * Version: 0.1
+ * Version: 1
  * Author: Harshit Sanghvi
  * Author URI: http://about.me/harshit
  * License: GPL2
@@ -154,8 +154,18 @@ if(!class_exists('Export_Network_Stats')) {
 			echo '<br /><br />';
 			//$site_admins = '';
 
+			echo '
+			<table border="1">
+				<tr>
+					<td>Blog ID</td>
+					<td>Blog Name</td>
+					<td>Blog URL</td>
+					<td>Privacy</td>
+					<td>Current Theme</td>
+					<td>Admin Email</td>
+				</tr>
+			';
 			
-			echo '<b>Blog ID,Blog Name, Blog URL, Privacy, Current Theme, Admin Email</b><br/>';
 
 			$site_admins_list = '';
 			foreach ($blogs as $blog) 
@@ -171,18 +181,30 @@ if(!class_exists('Export_Network_Stats')) {
 			    $blog_details = get_blog_details($blog->blog_id);
 			    //echo 'Blog '.$blog_details->blog_id.' is called '.$blog_details->blogname.'.';
 
+				/*	blog_public:
+					1 : I would like my blog to be visible to everyone, including search engines (like Google, Sphere, Technorati) and archivers. (default)
+					0 : I would like to block search engines, but allow normal visitors.
+					-1: Visitors must have a login - anyone that is a registered user of Web Publishing @ NYU can gain access.
+					-2: Only registered users of this blogs can have access - anyone found under Users > All Users can have access. 
+			    	-3: Only administrators can visit - good for testing purposes before making it live. 
+				*/
 			    $option_privacy = get_option( 'blog_public', '');
+			    
 			    $option_theme = get_option( 'template', '');
 			    $option_admin_email = get_option( 'admin_email', '');
 
 
+			    echo '
+			    	<tr>
+			    		<td>' . $blog->blog_id . '</td>
+			    		<td>' . $blog_details->blogname .'</td>
+			    		<td>' . $blog_details->path .'</td>
+			    		<td>' . $option_privacy .'</td>
+			    		<td>' . $option_theme .'</td>
+			    		<td>' . $option_admin_email .'</td>
+			    	</tr>
+			    ';
 
-		    	$site_admins_list .= $blog->blog_id . ',';
-		    	$site_admins_list .= $blog_details->blogname . ',';
-		    	$site_admins_list .= $blog_details->path . ',';
-				$site_admins_list .= $option_privacy . ',';
-				$site_admins_list .= $option_theme . ',';				
-		        $site_admins_list .= $option_admin_email . '<br />';
 
 			    /*
 			    foreach($results as $user)
@@ -203,7 +225,17 @@ if(!class_exists('Export_Network_Stats')) {
 			}
 			restore_current_blog();
 
-			echo $site_admins_list;
+			echo '
+			</table>';
+
+			echo '<br /><br /><br /> 
+					<strong>Privacy: </strong><br />
+					1 : I would like my blog to be visible to everyone, including search engines (like Google, Sphere, Technorati) and archivers. (default) <br />
+					0 : I would like to block search engines, but allow normal visitors. <br />
+					-1: Visitors must have a login - anyone that is a registered user of Web Publishing @ NYU can gain access. <br />
+					-2: Only registered users of this blogs can have access - anyone found under Users > All Users can have access. <br />
+			    	-3: Only administrators can visit - good for testing purposes before making it live. <br />
+			    ';
 
 			/* Repeat in table */
 		}

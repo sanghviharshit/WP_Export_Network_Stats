@@ -3,7 +3,7 @@
  * Plugin Name: Export Network Stats
  * Plugin URI: http://github.io/sanghviharshit
  * Description: Exports various site stats such as admins of each sites in multisite network
- * Version: 1.1
+ * Version: 1.2
  * Author: Harshit Sanghvi
  * Author URI: http://about.me/harshit
  * License: GPL2
@@ -16,6 +16,8 @@ define('ENS_PLUGIN_DIR', dirname( __FILE__ ).'/');
 define('ENS_MAIN_TABLE', 'ens_main_hps');
 // This is the slug used for the plugin's create site wizard page 
 define('ENS_EXPORT_SLUG', 'Export_Network_Stats');
+define('ENS_EXPORT_SITES_SLUG', 'Export_Network_Sites_Stats');
+define('ENS_EXPORT_PLUGINS_SLUG', 'Export_Network_Plugins_Stats');
 define('ENS_OPTIONS_PAGE_SLUG', 'Export_Network_Stats_Options');
 define('ENS_CONFIG_OPTIONS_FOR_DATABASE', 'ens_config_options_hps');
 define('ENS_VERSION', '0.1');
@@ -61,11 +63,14 @@ if(!class_exists('Export_Network_Stats')) {
 				with "manage_network" capability and displaying it with position "1.74"
 			*/
 			add_menu_page('Network Stats', 'Network Stats', 'manage_network', ENS_EXPORT_SLUG, 
-				array( $this, 'ens_export' ), plugins_url('ens/images/icon.png'), '2.74');
-			/* Adding First Sub menu item in the ENS Plugin to reflect the Create Site functionality in the sub menu */
-			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Export', 'Export', 'read', ENS_EXPORT_SLUG, 
-				array($this, 'ens_export') );
-			/* Adding Options page in the Network Dashboard below the Create Site menu item */
+				array( $this, 'ens_main' ), plugins_url('ens/images/icon.png'), '2.74');
+			/* Adding First Sub menu item in the ENS Plugin to show site stats in the sub menu */
+			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Site Stats', 'Site Stats', 'manage_network', ENS_EXPORT_SITES_SLUG, 
+				array($this, 'ens_site_data') );
+			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
+			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Plugin Stats', 'Plugin Stats', 'manage_network', ENS_EXPORT_PLUGINS_SLUG, 
+				array($this, 'ens_plugin_data') );
+			/* Adding Options page in the Network Dashboard */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Options', 'Options', 'manage_network', 
 				ENS_OPTIONS_PAGE_SLUG, array($this, 'ens_options_page') );
 		}
@@ -76,11 +81,14 @@ if(!class_exists('Export_Network_Stats')) {
 				with "manage_network" capability and displaying it with position "1.74"
 			*/
 			add_menu_page('Network Stats', 'Network Stats', 'manage_network', ENS_EXPORT_SLUG, 
-				array($this, 'ens_export'), plugins_url('ens/images/icon.png'), '2.74');
-			/* Adding First Sub menu item in the ENS Plugin to reflect the Create Site functionality in the sub menu */
-			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Export', 'Export', 'read', ENS_EXPORT_SLUG, 
-				array($this, 'ens_export') );
-			/* Adding Options page in the Network Dashboard below the Create Site menu item */
+				array( $this, 'ens_main' ), plugins_url('ens/images/icon.png'), '2.74');
+			/* Adding First Sub menu item in the ENS Plugin to show site stats in the sub menu */
+			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Site Stats', 'Site Stats', 'manage_network', ENS_EXPORT_SITES_SLUG, 
+				array($this, 'ens_site_data') );
+			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
+			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Plugin Stats', 'Plugin Stats', 'manage_network', ENS_EXPORT_PLUGINS_SLUG, 
+				array($this, 'ens_plugin_data') );
+			/* Adding Options page in the Network Dashboard */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Options', 'Options', 'manage_network', 
 				ENS_OPTIONS_PAGE_SLUG, array($this, 'ens_options_page') );
 		}
@@ -92,7 +100,7 @@ if(!class_exists('Export_Network_Stats')) {
 				echo sprintf( __( 'You must first <a href="%s">log in</a>, and then you can create a new site.' ), $login_url );
 			}
 			else {
-				$this->ens_export();
+				$this->ens_site_data();
 			}
 		}
 
@@ -135,8 +143,13 @@ if(!class_exists('Export_Network_Stats')) {
 			
 		}
 
-		/*	ENS Export function which is the main function	*/
-		public function ens_export() {
+		public function ens_main() {
+			echo '<h1>Export Network Stats</h1>';
+			echo '<br/><h3>TODO: This page will include options to export stats into CSV file</h3>';
+		}
+
+		/*	ENS Export Site Stats	*/
+		public function ens_site_data() {
 
 			global $wpdb;
 			$tablename = SSW_MAIN_TABLE;
@@ -152,7 +165,7 @@ if(!class_exists('Export_Network_Stats')) {
 			*/
 
 
-			echo '<br /><br /><H1>Site Stats</H1><br/>';
+			echo '<H1>Site Stats</H1><br/>';
 			
 
 			echo '
@@ -271,12 +284,11 @@ if(!class_exists('Export_Network_Stats')) {
 			    	-3: Only administrators can visit - good for testing purposes before making it live. <br />
 			    ';
 
-			// Print Plugin Stats
-			self::print_plugin_data();
 
 		}
 
-		public function print_plugin_data() {
+		/* Export Plugin Data */
+		public function ens_plugin_data() {
 
 			// Check if get_plugins() function exists. This is required on the front end of the
 			// site, since it is in a file that is normally only loaded in the admin.
@@ -294,7 +306,7 @@ if(!class_exists('Export_Network_Stats')) {
 			$all_plugins = get_plugins();
 
 
-			echo '<br/><br/><H1>Plugin Stats</H1><br/>';
+			echo '<H1>Plugin Stats</H1><br/>';
 			
 			echo '
 				<table border="1">

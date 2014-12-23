@@ -3,3 +3,9 @@ v1:
 
 v1.1
 * Added Plugin Stats
+
+v1.2
+* Separated sub menus for site stats and plugin stats.
+
+v1.3
+* Export/Download stats as CSV file

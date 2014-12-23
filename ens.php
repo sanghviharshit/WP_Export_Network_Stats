@@ -3,7 +3,7 @@
  * Plugin Name: Export Network Stats
  * Plugin URI: http://github.io/sanghviharshit
  * Description: Exports various site stats such as admins of each sites in multisite network
- * Version: 1.2
+ * Version: 1.3
  * Author: Harshit Sanghvi
  * Author URI: http://about.me/harshit
  * License: GPL2
@@ -22,8 +22,9 @@ define('ENS_OPTIONS_PAGE_SLUG', 'Export_Network_Stats_Options');
 define('ENS_CONFIG_OPTIONS_FOR_DATABASE', 'ens_config_options_hps');
 define('ENS_VERSION', '0.1');
 // SSW Plugin Main table name
-define('SSW_MAIN_TABLE', 'ssw_main_nsd');
-
+define('ENS_MAIN_TABLE', 'ens_main_hps');
+define('SSW_PLUGIN_DIR', 'nsd_ssw/ssw.php');
+define('MSP_PLUGIN_DIR', 'sitewide-privacy-options/sitewide-privacy-options.php');
 
 if(!class_exists('Export_Network_Stats')) {
 	class Export_Network_Stats {
@@ -34,6 +35,13 @@ if(!class_exists('Export_Network_Stats')) {
 
     	/*	Construct the plugin object	*/
 		public function __construct() {
+
+
+			if(isset($_GET['export_data']))
+			{
+				$this->ens_export_data($_GET['export_data']);
+				exit();
+			}
 
 			// Installation and uninstallation hooks
 			register_activation_hook(__FILE__, array( $this, 'ens_activate' ) );
@@ -66,10 +74,10 @@ if(!class_exists('Export_Network_Stats')) {
 				array( $this, 'ens_main' ), plugins_url('ens/images/icon.png'), '2.74');
 			/* Adding First Sub menu item in the ENS Plugin to show site stats in the sub menu */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Site Stats', 'Site Stats', 'manage_network', ENS_EXPORT_SITES_SLUG, 
-				array($this, 'ens_site_data') );
+				array($this, 'ens_print_site_stats') );
 			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Plugin Stats', 'Plugin Stats', 'manage_network', ENS_EXPORT_PLUGINS_SLUG, 
-				array($this, 'ens_plugin_data') );
+				array($this, 'ens_print_plugin_stats') );
 			/* Adding Options page in the Network Dashboard */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Options', 'Options', 'manage_network', 
 				ENS_OPTIONS_PAGE_SLUG, array($this, 'ens_options_page') );
@@ -84,10 +92,10 @@ if(!class_exists('Export_Network_Stats')) {
 				array( $this, 'ens_main' ), plugins_url('ens/images/icon.png'), '2.74');
 			/* Adding First Sub menu item in the ENS Plugin to show site stats in the sub menu */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Site Stats', 'Site Stats', 'manage_network', ENS_EXPORT_SITES_SLUG, 
-				array($this, 'ens_site_data') );
+				array($this, 'ens_print_site_stats') );
 			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Plugin Stats', 'Plugin Stats', 'manage_network', ENS_EXPORT_PLUGINS_SLUG, 
-				array($this, 'ens_plugin_data') );
+				array($this, 'ens_print_plugin_stats') );
 			/* Adding Options page in the Network Dashboard */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Options', 'Options', 'manage_network', 
 				ENS_OPTIONS_PAGE_SLUG, array($this, 'ens_options_page') );
@@ -111,7 +119,8 @@ if(!class_exists('Export_Network_Stats')) {
 
 		/* Activate the plugin	*/  
 		public function ens_activate() {
-			//ToDo: Activate function
+			//include(SSW_PLUGIN_DIR.'admin/ssw_activate.php');
+			
 		} 
 
 		/*	Deactivate the plugin	*/
@@ -143,9 +152,24 @@ if(!class_exists('Export_Network_Stats')) {
 			
 		}
 
+
+		/* Store ENS Plugin's main table name in variable based on multisite */
+		public function ens_main_table( $tablename = SSW_MAIN_TABLE ) {
+			global $wpdb;
+			$ssw_main_table = $wpdb->base_prefix.$tablename;
+			return $ssw_main_table;
+		} 
+
+
+
 		public function ens_main() {
-			echo '<h1>Export Network Stats</h1>';
-			echo '<br/><h3>TODO: This page will include options to export stats into CSV file</h3>';
+			echo '<h1>Export Network Stats</h1><br/>';
+			//echo '<br/><h3>TODO: This page will include options to export stats into CSV file</h3><br/>';
+
+			echo '<h3><a href="'.site_url().'/wp-admin/network/admin.php?page='.ENS_EXPORT_SLUG.'&export_data=site_data">Export Site Data</a></h3>';
+			
+			echo '<h3><a href="'.site_url().'/wp-admin/network/admin.php?page='.ENS_EXPORT_SLUG.'&export_data=plugin_data">Export Plugin Data</a></h3>';
+				
 		}
 
 		/*	ENS Export Site Stats	*/
@@ -155,7 +179,7 @@ if(!class_exists('Export_Network_Stats')) {
 			$tablename = SSW_MAIN_TABLE;
 			$ssw_main_table = $wpdb->base_prefix.$tablename;
     		
-			$blogs = $wpdb->get_results($wpdb->prepare("SELECT blog_id FROM {$wpdb->blogs} WHERE site_id = '{$wpdb->siteid}'"));
+			$blogs = $wpdb->get_results($wpdb->prepare("SELECT blog_id FROM {$wpdb->blogs} WHERE site_id = %d",$wpdb->siteid));
 			//TODO: Take care of spam, deleted and archived sites
 			/*
 			AND spam = '0'
@@ -165,24 +189,13 @@ if(!class_exists('Export_Network_Stats')) {
 			*/
 
 
-			echo '<H1>Site Stats</H1><br/>';
-			
+   			$ens_site_data = array();
+   			$ens_site_row = array();
 
-			echo '
-			<table border="1">
-				<tr>
-					<td>Blog ID</td>
-					<td>Blog Name</td>
-					<td>Blog URL</td>
-					<td>Privacy</td>
-					<td>Current Theme</td>
-					<td>Admin Email</td>
-					<td>Total Users</td>
-					<td>Active Plugins</td>
-					<td>Site Type</td>
-				</tr>
-			';
-
+   			/* To add Table headers
+   			$ens_site_row = array("Blog ID", "Blog Name", "Blog URL", "Privacy", "Current Theme", "Admin Email", "Total Users", "Active Plugins", "Site Type");
+   			$ens_site_data[] = $ens_site_row;
+			*/
 			// Get List of all plugins using get_plugins()
 			if ( ! function_exists( 'is_plugin_active_for_network' ) || ! function_exists( 'get_plugins' ) ) {
 		    	require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -195,26 +208,11 @@ if(!class_exists('Export_Network_Stats')) {
 			foreach ($blogs as $blog) 
 			{
 			    switch_to_blog( $blog->blog_id );
-			    $users_query = new WP_User_Query( array( 
-			                'role' => 'administrator', 
-			                'orderby' => 'display_name'
-			                ) );
-				//$results = $users_query->get_results();
-
 				$result = count_users();
-
 
 				//http://codex.wordpress.org/Function_Reference/get_blog_details
 			    $blog_details = get_blog_details($blog->blog_id);
-			    //echo 'Blog '.$blog_details->blog_id.' is called '.$blog_details->blogname.'.';
 
-				/*	blog_public:
-					1 : I would like my blog to be visible to everyone, including search engines (like Google, Sphere, Technorati) and archivers. (default)
-					0 : I would like to block search engines, but allow normal visitors.
-					-1: Visitors must have a login - anyone that is a registered user of Web Publishing @ NYU can gain access.
-					-2: Only registered users of this blogs can have access - anyone found under Users > All Users can have access. 
-			    	-3: Only administrators can visit - good for testing purposes before making it live. 
-				*/
 
 			    $option_privacy = get_option( 'blog_public', '');
 			    $option_theme = get_option( 'template', '');
@@ -239,52 +237,43 @@ if(!class_exists('Export_Network_Stats')) {
         			'SELECT site_usage FROM '.$ssw_main_table.' WHERE blog_id = '.$blog->blog_id
     				);
 
-				 
 
-			    echo '
-			    	<tr>
-			    		<td>' . $blog->blog_id . '</td>
-			    		<td>' . $blog_details->blogname .'</td>
-			    		<td>' . $blog_details->path .'</td>
-			    		<td>' . $option_privacy .'</td>
-			    		<td>' . $option_theme .'</td>
-			    		<td>' . $option_admin_email .'</td>
-			    		<td>' . $result['total_users'] .'</td>
-			    		<td>' . $count_active_plugins . '</td>
-			    		<td>' . $site_type . '</td>
-			    	</tr>
-			    ';
+			    if ( $this -> is_plugin_network_activated(SSW_PLUGIN_DIR)) {
+					$ens_site_row = array(
+		   				$blog->blog_id, 
+		   				$blog_details->blogname, 
+		   				$blog_details->path, 
+		   				$option_privacy, 
+		   				$option_theme, 
+		   				$option_admin_email, 
+		   				$result['total_users'], 
+		   				$count_active_plugins, 
+		   				$site_type
+	   				);
+				}
+				else {
+					$ens_site_row = array(
+		   				$blog->blog_id, 
+		   				$blog_details->blogname, 
+		   				$blog_details->path, 
+		   				$option_privacy, 
+		   				$option_theme, 
+		   				$option_admin_email, 
+		   				$result['total_users'], 
+		   				$count_active_plugins, 
+		   			);
+				}
+			
+	   			
 
-			    // To print list of admins in each row.
-			    /*
-			    foreach($results as $user)
-			    {
-			    	$site_admins_list .= $blog->blog_id . ',';
-			    	$site_admins_list .= $blog_details->blogname . ',';
-			    	$site_admins_list .= $blog_details->path . ',';
-					$site_admins_list .= $option_privacy . ',';
-					$site_admins_list .= $option_theme . ',';
-			        $site_admins_list .= $user->user_email . '<br />';
-			    }
-				*/
+	   			$ens_site_data[] = $ens_site_row;
+
 			    
 			}
 
 			restore_current_blog();
 
-			echo '
-			</table>';
-
-			echo '<br /><br /><br /> 
-					<strong>Privacy: </strong><br />
-					1 : I would like my blog to be visible to everyone, including search engines (like Google, Sphere, Technorati) and archivers. (default) <br />
-					0 : I would like to block search engines, but allow normal visitors. <br />
-					-1: Visitors must have a login - anyone that is a registered user of Web Publishing @ NYU can gain access. <br />
-					-2: Only registered users of this blogs can have access - anyone found under Users > All Users can have access. <br />
-			    	-3: Only administrators can visit - good for testing purposes before making it live. <br />
-			    ';
-
-
+			return $ens_site_data;
 		}
 
 		/* Export Plugin Data */
@@ -305,38 +294,28 @@ if(!class_exists('Export_Network_Stats')) {
 			
 			$all_plugins = get_plugins();
 
-
-			echo '<H1>Plugin Stats</H1><br/>';
-			
-			echo '
-				<table border="1">
-				<tr>
-					<td>Plugin</td>
-					<td>Number of Sites</td>
-				</tr>';
-
+   			$ens_plugin_data = array();
+			$ens_plugin_row = array();
+   			
+   			/*
+   			$ens_plugin_row = array("Plugin", "Number of Sites");
+   			$ens_plugin_data[] = $ens_plugin_row;
+			*/
     		
 			foreach( $all_plugins as $plugin_file => $plugin_data ) {
         		$active_on_network = is_plugin_active_for_network( $plugin_file );
-				echo '
-					<tr>
-						<td>' . $plugin_data[ 'Title' ] . '</td>';
-
-
+				
 				if ( $active_on_network ) {
 				    // We don't need to check any further for network active plugins
-				    echo '<td>Network Activated</td>
-				    	</tr>';
-
+				    $ens_plugin_row = array($plugin_data[ 'Title' ],"Network Activated");
 				} 
 				else {
 		            // Is this plugin Active on any blogs in this network?
 		            $active_on_blogs = self::is_plugin_active_on_blogs( $plugin_file );
 		            if ( is_array( $active_on_blogs ) ) {
 		            	$count_blogs_plugin_is_active = count($active_on_blogs);
-		            	echo '<td>'.$count_blogs_plugin_is_active.'</td>
-		            		</tr>';
-
+		            	$ens_plugin_row = array($plugin_data[ 'Title' ],$count_blogs_plugin_is_active);
+		            	
 /*
 						// To List all the sites the plugin is active on.
 		                // Loop through the blog list, gather details and append them to the output string
@@ -360,14 +339,160 @@ if(!class_exists('Export_Network_Stats')) {
 */
 		            }
 				}
+
+				$ens_plugin_data[] = $ens_plugin_row;
+			
 			}
 
-			echo '</table>';
-			
+			return $ens_plugin_data;
 		}
 
+		
+		function ens_print_site_stats() {
+
+			$ens_site_data = $this->ens_site_data();
+			echo '<H1>Site Stats</H1><br/>';			
+
+			echo '
+				<table border="1">
+				';
+
+			echo '
+				<tr>
+					<td>Blog ID</td>
+					<td>Blog Name</td>
+					<td>Blog URL</td>
+					<td>Privacy</td>
+					<td>Current Theme</td>
+					<td>Admin Email</td>
+					<td>Total Users</td>
+					<td>Active Plugins</td>';
+			
+			if ( $this -> is_plugin_network_activated(SSW_PLUGIN_DIR)) {
+				echo '
+					<td>Site Type</td>';
+			}
+
+			echo '
+				</tr>
+				';
+			
+			
+		
+			foreach ($ens_site_data as $site_data) {
+				echo '<tr>';
+		    	foreach ($site_data as $site_data_field) {
+		    		echo '<td>' . $site_data_field . '</td>';
+		    	}
+			    echo '</tr>';
+			}
+
+			echo '
+			</table>';
+
+
+			if ($this->is_plugin_network_activated(MSP_PLUGIN_DIR)) {
+
+				echo '<br /><br /><br /> 
+						<strong>Privacy: </strong><br />
+						1 : I would like my blog to be visible to everyone, including search engines (like Google, Sphere, Technorati) and archivers. (default) <br />
+						0 : I would like to block search engines, but allow normal visitors. <br />
+						-1: Visitors must have a login - anyone that is a registered user of Web Publishing @ NYU can gain access. <br />
+						-2: Only registered users of this blogs can have access - anyone found under Users > All Users can have access. <br />
+				    	-3: Only administrators can visit - good for testing purposes before making it live. <br />
+				    ';
+			} 
+			else {
+
+				echo '<br /><br /><br /> 
+						<strong>Privacy: </strong><br />
+						1 : I would like my blog to be visible to everyone, including search engines (like Google, Sphere, Technorati) and archivers. (default) <br />
+						0 : I would like to block search engines, but allow normal visitors. <br />
+				    ';	
+			}		
+				
+		}
+
+		function ens_print_plugin_stats() {
+
+			$transient = 'update_plugins';
+			$update_plugins_list = get_transient( $transient );
+
+			var_dump($update_plugins_list);
+
+
+			$ens_plugin_data = $this->ens_plugin_data();
+			echo '<H1>Plugin Stats</H1><br/>';
+
+			echo '
+				<table border="1">
+				';
+
+			echo '
+				<tr>
+					<td>Plugin</td>
+					<td>Number of Sites</td>
+				</tr>';
+
+			foreach ($ens_plugin_data as $plugin_data) {
+				echo '<tr>';
+		    	foreach ($plugin_data as $plugin_data_field) {
+		    		echo '<td>' . $plugin_data_field . '</td>';
+		    	}
+			    echo '</tr>';
+			}
+
+			echo '
+			</table>';
+
+			
+
+		}
 
 	    /* Helper Functions ***********************************************************/
+
+
+	    function ens_export_data($data = "site_data") {
+
+	    	$delimiter=",";
+	    	$filename = $data . '.csv';
+
+/*
+			if ( !current_user_can( 'manage_network' ) ) {
+				wp_die( 'You do not have permission to run this script.' );
+			}
+*/
+			if ($data == 'site_data') {
+				$ens_export_data = $this->ens_site_data();
+			}
+			elseif ($data == 'plugin_data') {
+				$ens_export_data = $this->ens_plugin_data();
+			}
+			else {
+				echo $data;
+				echo 'You Lost? Huh?';
+				exit();
+			}
+
+			header('Content-Type: application/csv');
+			header('Content-Disposition: attachement; filename="'.$filename.'";');
+
+			// open the "output" stream
+			// see http://www.php.net/manual/en/wrappers.php.php#refsect2-wrappers.php-unknown-unknown-unknown-descriptioq
+			$f = fopen('php://output', 'w');
+
+			foreach ($ens_export_data as $line) {
+				fputcsv($f, $line, $delimiter);
+			}
+			fclose($f);
+		}   
+
+
+		function is_plugin_network_activated($plugin) {
+		
+			return is_plugin_active_for_network($plugin);
+		}
+
 
 	    // Get the database prefix
 	    static function get_blog_prefix( $blog_id=null ) {
@@ -511,6 +636,7 @@ if(!class_exists('Export_Network_Stats')) {
 if(class_exists('Export_Network_Stats')) {
 	// instantiate the plugin class
 	$export_netwok_stats = new Export_Network_Stats();
+
 }
 
 ?>

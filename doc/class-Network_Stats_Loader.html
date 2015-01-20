@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+
+	<title>Class Network_Stats_Loader</title>
+
+	<link rel="stylesheet" href="resources/style.css?e99947befd7bf673c6b43ff75e9e0f170c88a60e">
+
+</head>
+
+<body>
+<div id="left">
+	<div id="menu">
+		<a href="index.html" title="Overview"><span>Overview</span></a>
+
+
+		<div id="groups">
+				<h3>Packages</h3>
+			<ul>
+				<li>
+					<a href="package-Network.html">
+						Network<span></span>
+					</a>
+
+						<ul>
+				<li>
+					<a href="package-Network.Stats.html">
+						Stats<span></span>
+					</a>
+
+						<ul>
+				<li>
+					<a href="package-Network.Stats.admin.html">
+						admin					</a>
+
+						</li>
+				<li>
+					<a href="package-Network.Stats.includes.html">
+						includes					</a>
+
+						</li>
+				<li>
+					<a href="package-Network.Stats.public.html">
+						public					</a>
+
+						</li>
+							</ul></li></ul></li>
+			</ul>
+		</div>
+
+		<hr>
+
+
+		<div id="elements">
+			<h3>Classes</h3>
+			<ul>
+				<li><a href="class-Network_Stats.html">Network_Stats</a></li>
+				<li><a href="class-Network_Stats_Activator.html">Network_Stats_Activator</a></li>
+				<li><a href="class-Network_Stats_Deactivator.html">Network_Stats_Deactivator</a></li>
+				<li><a href="class-Network_Stats_Helper.html">Network_Stats_Helper</a></li>
+				<li><a href="class-Network_Stats_i18n.html">Network_Stats_i18n</a></li>
+				<li class="active"><a href="class-Network_Stats_Loader.html">Network_Stats_Loader</a></li>
+			</ul>
+
+
+
+
+
+		</div>
+	</div>
+</div>
+
+<div id="splitter"></div>
+
+<div id="right">
+<div id="rightInner">
+	<form id="search">
+		<input type="hidden" name="cx" value="">
+		<input type="hidden" name="ie" value="UTF-8">
+		<input type="text" name="q" class="text" placeholder="Search">
+	</form>
+
+	<div id="navigation">
+		<ul>
+			<li>
+				<a href="index.html" title="Overview"><span>Overview</span></a>
+			</li>
+			<li>
+<span>Package</span>			</li>
+			<li class="active">
+<span>Class</span>			</li>
+		</ul>
+		<ul>
+		</ul>
+		<ul>
+		</ul>
+	</div>
+
+<div id="content" class="class">
+	<h1>Class Network_Stats_Loader</h1>
+
+
+	<div class="description">
+	<p>Register all actions and filters for the plugin.</p>
+
+<p>Maintain a list of all hooks that are registered throughout
+the plugin, and register them with the WordPress API. Call the
+run function to execute the list of actions and filters.</p>
+	</div>
+
+
+
+
+
+
+
+
+
+	<div class="info">
+		
+		
+		
+		<b>Package:</b> <a href="package-Network.html">Network</a>\<a href="package-Network.Stats.html">Stats</a>\<a href="package-Network.Stats.includes.html">includes</a><br>
+
+				<b>Author:</b>
+				Harshit Sanghvi <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#58;&#x73;&#x61;&#110;&#103;&#x68;&#x76;&#105;&#46;&#x68;&#x61;&#114;&#115;&#x68;&#x69;&#116;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#x73;&#x61;&#110;&#103;&#x68;&#x76;&#105;&#46;&#x68;&#x61;&#114;&#115;&#x68;&#x69;&#116;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#x6d;</a><br>
+			<b>Located at</b> <a href="source-class-Network_Stats_Loader.html#13-129" title="Go to source code">wp-network-stats/includes/class-network-stats-loader.php</a>
+		<br>
+	</div>
+
+
+
+	<table class="summary methods" id="methods">
+	<caption>Methods summary</caption>
+	<tr data-order="__construct" id="___construct">
+
+		<td class="attributes"><code>
+			 public 
+
+			
+			
+			</code>
+		</td>
+
+		<td class="name"><div>
+		<a class="anchor" href="#___construct">#</a>
+		<code><a href="source-class-Network_Stats_Loader.html#44-54" title="Go to source code">__construct</a>( )</code>
+
+		<div class="description short">
+			<p>Initialize the collections used to maintain the actions and filters.</p>
+		</div>
+
+		<div class="description detailed hidden">
+			<p>Initialize the collections used to maintain the actions and filters.</p>
+
+
+
+
+
+				<h4>Since</h4>
+				<div class="list">
+						0.0.1<br>
+				</div>
+
+
+		</div>
+		</div></td>
+	</tr>
+	<tr data-order="add_action" id="_add_action">
+
+		<td class="attributes"><code>
+			 public 
+
+			
+			
+			</code>
+		</td>
+
+		<td class="name"><div>
+		<a class="anchor" href="#_add_action">#</a>
+		<code><a href="source-class-Network_Stats_Loader.html#56-68" title="Go to source code">add_action</a>( <span> <var>$hook</var></span>, <span> <var>$component</var></span>, <span> <var>$callback</var></span>, <span> <var>$priority</var> = <span class="php-num">10</span></span>, <span> <var>$accepted_args</var> = <span class="php-num">1</span> </span> )</code>
+
+		<div class="description short">
+			<p>Add a new action to the collection to be registered with WordPress.</p>
+		</div>
+
+		<div class="description detailed hidden">
+			<p>Add a new action to the collection to be registered with WordPress.</p>
+
+
+
+
+
+				<h4>Since</h4>
+				<div class="list">
+						0.0.1<br>
+				</div>
+				<h4>Var</h4>
+				<div class="list">
+						string               $hook             The name of the WordPress action that is being registered.<br>
+						object               $component        A reference to the instance of the object on which the action is defined.<br>
+						string               $callback         The name of the function definition on the $component.<br>
+						int      Optional    $priority         The priority at which the function should be fired.<br>
+						int      Optional    $accepted_args    The number of arguments that should be passed to the $callback.<br>
+				</div>
+
+
+		</div>
+		</div></td>
+	</tr>
+	<tr data-order="add_filter" id="_add_filter">
+
+		<td class="attributes"><code>
+			 public 
+
+			
+			
+			</code>
+		</td>
+
+		<td class="name"><div>
+		<a class="anchor" href="#_add_filter">#</a>
+		<code><a href="source-class-Network_Stats_Loader.html#70-82" title="Go to source code">add_filter</a>( <span> <var>$hook</var></span>, <span> <var>$component</var></span>, <span> <var>$callback</var></span>, <span> <var>$priority</var> = <span class="php-num">10</span></span>, <span> <var>$accepted_args</var> = <span class="php-num">1</span> </span> )</code>
+
+		<div class="description short">
+			<p>Add a new filter to the collection to be registered with WordPress.</p>
+		</div>
+
+		<div class="description detailed hidden">
+			<p>Add a new filter to the collection to be registered with WordPress.</p>
+
+
+
+
+
+				<h4>Since</h4>
+				<div class="list">
+						0.0.1<br>
+				</div>
+				<h4>Var</h4>
+				<div class="list">
+						string               $hook             The name of the WordPress filter that is being registered.<br>
+						object               $component        A reference to the instance of the object on which the filter is defined.<br>
+						string               $callback         The name of the function definition on the $component.<br>
+						int      Optional    $priority         The priority at which the function should be fired.<br>
+						int      Optional    $accepted_args    The number of arguments that should be passed to the $callback.<br>
+				</div>
+
+
+		</div>
+		</div></td>
+	</tr>
+	<tr data-order="run" id="_run">
+
+		<td class="attributes"><code>
+			 public 
+
+			
+			
+			</code>
+		</td>
+
+		<td class="name"><div>
+		<a class="anchor" href="#_run">#</a>
+		<code><a href="source-class-Network_Stats_Loader.html#112-127" title="Go to source code">run</a>( )</code>
+
+		<div class="description short">
+			<p>Register the filters and actions with WordPress.</p>
+		</div>
+
+		<div class="description detailed hidden">
+			<p>Register the filters and actions with WordPress.</p>
+
+
+
+
+
+				<h4>Since</h4>
+				<div class="list">
+						0.0.1<br>
+				</div>
+
+
+		</div>
+		</div></td>
+	</tr>
+	</table>
+
+
+
+
+
+
+
+
+
+
+
+
+	<table class="summary properties" id="properties">
+	<caption>Properties summary</caption>
+	<tr data-order="actions" id="$actions">
+		<td class="attributes"><code>
+			protected  
+			array
+		</code></td>
+
+		<td class="name">
+				<a href="source-class-Network_Stats_Loader.html#26-33" title="Go to source code"><var>$actions</var></a>
+
+			<div class="description short">
+				<p>The array of actions registered with WordPress.</p>
+			</div>
+
+			<div class="description detailed hidden">
+				<p>The array of actions registered with WordPress.</p>
+
+					<h4>Since</h4>
+					<div class="list">
+							0.0.1<br>
+					</div>
+			</div>
+		</td>
+		<td class="value">
+			<div>
+				<a href="#$actions" class="anchor">#</a>
+				<code></code>
+			</div>
+		</td>
+	</tr>
+	<tr data-order="filters" id="$filters">
+		<td class="attributes"><code>
+			protected  
+			array
+		</code></td>
+
+		<td class="name">
+				<a href="source-class-Network_Stats_Loader.html#35-42" title="Go to source code"><var>$filters</var></a>
+
+			<div class="description short">
+				<p>The array of filters registered with WordPress.</p>
+			</div>
+
+			<div class="description detailed hidden">
+				<p>The array of filters registered with WordPress.</p>
+
+					<h4>Since</h4>
+					<div class="list">
+							0.0.1<br>
+					</div>
+			</div>
+		</td>
+		<td class="value">
+			<div>
+				<a href="#$filters" class="anchor">#</a>
+				<code></code>
+			</div>
+		</td>
+	</tr>
+	</table>
+
+
+
+
+
+
+</div>
+
+	<div id="footer">
+		 API documentation generated by <a href="http://apigen.org">ApiGen</a>
+	</div>
+</div>
+</div>
+<script src="resources/combined.js"></script>
+<script src="elementlist.js"></script>
+</body>
+</html>

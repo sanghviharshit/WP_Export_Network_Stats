@@ -18,6 +18,7 @@ define('ENS_MAIN_TABLE', 'ens_main_hps');
 define('ENS_EXPORT_SLUG', 'Export_Network_Stats');
 define('ENS_EXPORT_SITES_SLUG', 'Export_Network_Sites_Stats');
 define('ENS_EXPORT_PLUGINS_SLUG', 'Export_Network_Plugins_Stats');
+define('ENS_EXPORT_CSV_SLUG', 'Export_Stats_CSV');
 define('ENS_OPTIONS_PAGE_SLUG', 'Export_Network_Stats_Options');
 define('ENS_CONFIG_OPTIONS_FOR_DATABASE', 'ens_config_options_hps');
 define('ENS_VERSION', '0.1');
@@ -25,6 +26,10 @@ define('ENS_VERSION', '0.1');
 define('ENS_MAIN_TABLE', 'ens_main_hps');
 define('SSW_PLUGIN_DIR', 'nsd_ssw/ssw.php');
 define('MSP_PLUGIN_DIR', 'sitewide-privacy-options/sitewide-privacy-options.php');
+
+
+include 'ens_charts_js.php';
+
 
 if(!class_exists('Export_Network_Stats')) {
 	class Export_Network_Stats {
@@ -36,12 +41,12 @@ if(!class_exists('Export_Network_Stats')) {
     	/*	Construct the plugin object	*/
 		public function __construct() {
 
-
 			if(isset($_GET['export_data']))
 			{
 				$this->ens_export_data($_GET['export_data']);
 				exit();
 			}
+
 
 			// Installation and uninstallation hooks
 			register_activation_hook(__FILE__, array( $this, 'ens_activate' ) );
@@ -55,6 +60,10 @@ if(!class_exists('Export_Network_Stats')) {
 			add_action( 'admin_menu', array($this, 'ens_menu'));
 			/* Add action to display Export menu item in Network Admin's Dashboard */
 			add_action( 'network_admin_menu', array( $this, 'ens_network_menu' ) );
+
+
+			add_action( 'admin_enqueue_scripts', 'ens_charts_load_scripts' );
+			add_action( 'admin_head', 'ens_charts_html5_support');
 
 			/* Add shortcode [site_setuo_wizard] to any page to display Site Setup Wizard over it */
 			//add_shortcode('export_netwok_stats', array( $this, 'ens_shortcode' ) );
@@ -78,6 +87,10 @@ if(!class_exists('Export_Network_Stats')) {
 			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Plugin Stats', 'Plugin Stats', 'manage_network', ENS_EXPORT_PLUGINS_SLUG, 
 				array($this, 'ens_print_plugin_stats') );
+			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
+			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Export Stats', 'Export Stats', 'manage_network', ENS_EXPORT_CSV_SLUG, 
+				'ens_charts_shortcode' );
+			
 			/* Adding Options page in the Network Dashboard */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Options', 'Options', 'manage_network', 
 				ENS_OPTIONS_PAGE_SLUG, array($this, 'ens_options_page') );
@@ -96,6 +109,10 @@ if(!class_exists('Export_Network_Stats')) {
 			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Plugin Stats', 'Plugin Stats', 'manage_network', ENS_EXPORT_PLUGINS_SLUG, 
 				array($this, 'ens_print_plugin_stats') );
+			/* Adding First Sub menu item in the ENS Plugin to show plugin stats in the sub menu */
+			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Export Stats', 'Export Stats', 'manage_network', ENS_EXPORT_CSV_SLUG, 
+				'ens_charts_shortcode' );
+			
 			/* Adding Options page in the Network Dashboard */
 			add_submenu_page(ENS_EXPORT_SLUG, 'Network Stats - Options', 'Options', 'manage_network', 
 				ENS_OPTIONS_PAGE_SLUG, array($this, 'ens_options_page') );
@@ -146,7 +163,6 @@ if(!class_exists('Export_Network_Stats')) {
 				wp_die( 'You do not have permission to run this script.' );
 			}
 			
-			$ens_main_table = $wpdb->base_prefix.ENS_MAIN_TABLE;
 			// Drop ENS Main Table
 			$wpdb->query( 'DROP TABLE IF EXISTS '.$ens_main_table );
 			
@@ -154,7 +170,7 @@ if(!class_exists('Export_Network_Stats')) {
 
 
 		/* Store ENS Plugin's main table name in variable based on multisite */
-		public function ens_main_table( $tablename = SSW_MAIN_TABLE ) {
+		public function ens_main_table( $tablename = ENS_MAIN_TABLE ) {
 			global $wpdb;
 			$ssw_main_table = $wpdb->base_prefix.$tablename;
 			return $ssw_main_table;
@@ -166,6 +182,12 @@ if(!class_exists('Export_Network_Stats')) {
 			echo '<h1>Export Network Stats</h1><br/>';
 			//echo '<br/><h3>TODO: This page will include options to export stats into CSV file</h3><br/>';
 
+			//TODO: Securing the export function
+			echo '<form method="post" action="'. plugins_url('admin/ens_export.php', __FILE__) . ' ">';
+			echo '	<input type="hidden" id="export_data" name="export_data" value="site_data">';
+			echo '	<input type="submit" value="Export Site Data">';
+			echo '</form>';
+
 			echo '<h3><a href="'.site_url().'/wp-admin/network/admin.php?page='.ENS_EXPORT_SLUG.'&export_data=site_data">Export Site Data</a></h3>';
 			
 			echo '<h3><a href="'.site_url().'/wp-admin/network/admin.php?page='.ENS_EXPORT_SLUG.'&export_data=plugin_data">Export Plugin Data</a></h3>';
@@ -176,8 +198,7 @@ if(!class_exists('Export_Network_Stats')) {
 		public function ens_site_data() {
 
 			global $wpdb;
-			$tablename = SSW_MAIN_TABLE;
-			$ssw_main_table = $wpdb->base_prefix.$tablename;
+			$ens_main_table = $this->ens_main_table();
     		
 			$blogs = $wpdb->get_results($wpdb->prepare("SELECT blog_id FROM {$wpdb->blogs} WHERE site_id = %d",$wpdb->siteid));
 			//TODO: Take care of spam, deleted and archived sites
@@ -240,27 +261,27 @@ if(!class_exists('Export_Network_Stats')) {
 
 			    if ( $this -> is_plugin_network_activated(SSW_PLUGIN_DIR)) {
 					$ens_site_row = array(
-		   				$blog->blog_id, 
-		   				$blog_details->blogname, 
-		   				$blog_details->path, 
-		   				$option_privacy, 
-		   				$option_theme, 
-		   				$option_admin_email, 
-		   				$result['total_users'], 
-		   				$count_active_plugins, 
-		   				$site_type
+		   				'blog_id' => $blog->blog_id, 
+		   				'blog_name' => $blog_details->blogname, 
+		   				'blog_url' => $blog_details->path, 
+		   				'privacy' => $option_privacy, 
+		   				'current_theme' => $option_theme, 
+		   				'admin_email' => $option_admin_email, 
+		   				'total_users' => $result['total_users'], 
+		   				'active_plugins' => $count_active_plugins, 
+		   				'site_type' => $site_type
 	   				);
 				}
 				else {
 					$ens_site_row = array(
-		   				$blog->blog_id, 
-		   				$blog_details->blogname, 
-		   				$blog_details->path, 
-		   				$option_privacy, 
-		   				$option_theme, 
-		   				$option_admin_email, 
-		   				$result['total_users'], 
-		   				$count_active_plugins, 
+		   				'blog_id' => $blog->blog_id, 
+		   				'blog_name' => $blog_details->blogname, 
+		   				'blog_url' => $blog_details->path, 
+		   				'privacy' => $option_privacy, 
+		   				'current_theme' => $option_theme, 
+		   				'admin_email' => $option_admin_email, 
+		   				'total_users' => $result['total_users'], 
+		   				'site_type' => $count_active_plugins, 
 		   			);
 				}
 			
@@ -272,6 +293,14 @@ if(!class_exists('Export_Network_Stats')) {
 			}
 
 			restore_current_blog();
+
+
+			$wpdb->query( 'TRUNCATE table ' . $ens_main_table );
+			echo '<br/>insert data in '. $ens_main_table . '<br />';
+			foreach ($ens_site_data as $site_data) {
+				$wpdb->insert( $ens_main_table, $site_data);
+			}
+
 
 			return $ens_site_data;
 		}
@@ -344,13 +373,35 @@ if(!class_exists('Export_Network_Stats')) {
 			
 			}
 
+
 			return $ens_plugin_data;
 		}
 
 		
 		function ens_print_site_stats() {
+			global $wpdb;
+			$ens_main_table = $this->ens_main_table();
 
-			$ens_site_data = $this->ens_site_data();
+			$ens_site_data_in_db = $wpdb->get_results( 
+				"
+				SELECT * 
+				FROM " . $ens_main_table
+			);
+
+
+			if ( $ens_site_data_in_db )
+			{
+				foreach ( $ens_site_data_in_db as $ens_site_row )
+				{
+		   			$ens_site_data[] = $ens_site_row;
+		   		}
+		   	}
+
+		   	else {
+				echo 'There is no data to display';
+				exit();
+			}
+
 			echo '<H1>Site Stats</H1><br/>';			
 
 			echo '
@@ -376,8 +427,6 @@ if(!class_exists('Export_Network_Stats')) {
 			echo '
 				</tr>
 				';
-			
-			
 		
 			foreach ($ens_site_data as $site_data) {
 				echo '<tr>';
@@ -410,7 +459,52 @@ if(!class_exists('Export_Network_Stats')) {
 						0 : I would like to block search engines, but allow normal visitors. <br />
 				    ';	
 			}		
-				
+			
+
+			$ens_current_theme = $wpdb->get_results( 
+				"
+				SELECT current_theme, count(*) As Number_Sites 
+				FROM " . $ens_main_table . " GROUP by current_theme", ARRAY_A
+			);
+
+
+			echo 'SELECT current_theme, count(*)  
+				FROM ' . $ens_main_table . ' GROUP by current_theme';
+
+			echo "<br />";
+
+			$chart_labels = array();
+			$chart_data = array();
+
+			//print_r($ens_current_theme);
+
+			if ( $ens_current_theme )
+			{
+				foreach ( $ens_current_theme as $ens_current_theme_row )
+				{
+					$chart_labels[] = $ens_current_theme_row['current_theme'];
+					$chart_data[] = $ens_current_theme_row['Number_Sites'];
+				}
+		   	}
+
+
+
+		   	//print_r($chart_data);
+		   	//echo implode(",",$chart_data);
+		   	echo "<table>
+		   			<tr>
+		   			";
+		   	$atts = array('title' => "Theme Distribution", 'data' => implode(",",$chart_data), 'labels' => implode(",",$chart_labels));
+		   	ens_charts_shortcode($atts);
+
+		   	echo "</tr>
+		   			<tr>";
+		   	$atts = array('title' => "Data Distribution", 'data' => "100,200,300", 'labels' => "a,b,c");
+		   	ens_charts_shortcode($atts);
+
+		   	echo "</tr>
+		   			</table>";
+
 		}
 
 		function ens_print_plugin_stats() {
